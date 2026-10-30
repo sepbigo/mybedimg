@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /api/
+Disallow: /upload
+Disallow: /upload-login
+Allow: /$
+Allow: /file/

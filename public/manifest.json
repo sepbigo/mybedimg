@@ -1,0 +1,17 @@
+{
+  "name": "ZYW图床 | 高端云端影像托管系统",
+  "short_name": "ZYW图床",
+  "description": "基于 Cloudflare R2 / KV / Telegram 多引擎的高速批量图床，支持直链、BBCode、HTML、Markdown 一键复制",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090D16",
+  "theme_color": "#5189E5",
+  "icons": [
+    {
+      "src": "/assets/images/favicon_256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

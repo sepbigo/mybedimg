@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>访问认证 | ZYW图床</title>
+  <style>
+    :root {
+      --primary: #5189E5;
+      --accent: #6EBAFF;
+      --bg: #070B14;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 20%, rgba(81, 137, 229, 0.22), transparent 45%),
+                  radial-gradient(circle at 80% 80%, rgba(110, 186, 255, 0.16), transparent 50%),
+                  var(--bg);
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(110, 186, 255, 0.2);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(81, 137, 229, 0.4);
+    }
+    h1 { font-size: 20px; font-weight: 700; }
+    p.sub { font-size: 13px; color: #94A3B8; margin-top: 4px; }
+    .field { margin-top: 22px; }
+    label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 8px; }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(2, 6, 23, 0.65);
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="password"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(110, 186, 255, 0.2);
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    button:hover { opacity: 0.92; }
+    button:active { transform: scale(0.99); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #message {
+      margin-top: 14px;
+      min-height: 20px;
+      font-size: 13px;
+      color: #F87171;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-badge">Z</div>
+      <div>
+        <h1>ZYW图床 · 访问验证</h1>
+        <p class="sub">请输入站点所有者提供的上传访问密码</p>
+      </div>
+    </div>
+    <form id="login-form" action="/api/upload-auth/login" method="POST">
+      <input type="hidden" id="return-to" name="returnTo" value="/" />
+      <div class="field">
+        <label for="password">上传访问密码 (Access Password)</label>
+        <input type="password" id="password" name="password" placeholder="请输入访问密码..." required autofocus />
+      </div>
+      <button type="submit" id="submit-button">验证并进入图床</button>
+      <div id="message"></div>
+    </form>
+  </div>
+  <script>
+    (() => {
+      const allowedPaths = new Set(["/", "/index", "/index.html", "/markdown-upload", "/markdown-upload.html"]);
+      const params = new URLSearchParams(window.location.search);
+      const requestedPath = params.get("returnTo") || "/";
+      const returnTo = allowedPaths.has(requestedPath) ? requestedPath : "/";
+      const form = document.getElementById("login-form");
+      const password = document.getElementById("password");
+      const returnInput = document.getElementById("return-to");
+      const button = document.getElementById("submit-button");
+      const message = document.getElementById("message");
+      returnInput.value = returnTo;
+
+      if (params.get("loggedOut") === "1") {
+        message.style.color = "#6EBAFF";
+        message.textContent = "已安全退出上传访问会话。";
+      }
+
+      fetch("/api/upload-auth/session", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" }
+      }).then((res) => {
+        if (res.ok) window.location.replace(returnTo);
+      }).catch(() => {});
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        button.disabled = true;
+        message.style.color = "#94A3B8";
+        message.textContent = "正在验证安全会话…";
+        try {
+          const body = new URLSearchParams({
+            password: password.value,
+            returnTo: returnInput.value
+          });
+          const response = await fetch(form.action, {
+            method: "POST",
+            body,
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+          });
+          const result = await response.json().catch(() => ({}));
+          if (response.ok && result.authenticated) {
+            const redirectTo = allowedPaths.has(result.redirectTo) ? result.redirectTo : returnTo;
+            window.location.assign(redirectTo);
+            return;
+          }
+          message.style.color = "#F87171";
+          if (response.status === 429) {
+            message.textContent = result.error || "尝试次数过多，已触发防爆破锁定，请稍后再试。";
+          } else if (response.status === 401) {
+            message.textContent = "访问密码不正确，请重新输入。";
+          } else if (response.status === 503) {
+            message.textContent = "验证服务暂时不可用，请联系站点所有者。";
+          } else {
+            message.textContent = "无法完成验证，请检查输入后重试。";
+          }
+        } catch {
+          message.style.color = "#F87171";
+          message.textContent = "网络连接异常，请稍后重试。";
+        } finally {
+          password.value = "";
+          button.disabled = false;
+          password.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

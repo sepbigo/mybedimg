@@ -1,0 +1,25 @@
+{
+  "name": "zyw-tuchuang",
+  "version": "3.0.0",
+  "description": "ZYW图床 (ZYW Image Hosting v2.2) - 基于 Cloudflare Pages + R2 / KV / Telegram 多引擎的高端现代化图床系统",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public --project-name zyw-tuchuang"
+  },
+  "keywords": [
+    "image-hosting",
+    "cloudflare-pages",
+    "cloudflare-r2",
+    "cloudflare-kv",
+    "telegram-bot",
+    "bbcode",
+    "markdown",
+    "zyw-tuchuang"
+  ],
+  "author": "ZYW Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.80.0"
+  }
+}
